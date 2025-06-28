@@ -1,14 +1,43 @@
 body {
-    background-color: black;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
+  background: black;
+  color: white;
+  text-align: center;
+  font-family: sans-serif;
 }
 
-#gameCanvas {
-    background-color: #000;
-    border: 3px solid yellow;
-    display: block;
+h1 {
+  margin-top: 10px;
+}
+
+#game {
+  display: grid;
+  margin: 20px auto;
+  grid-template-columns: repeat(18, 20px);
+  grid-template-rows: repeat(20, 20px);
+  gap: 1px;
+}
+
+.cell {
+  width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+}
+
+.wall {
+  background: var(--wall-color);
+}
+
+.dot {
+  background: white;
+  border-radius: 50%;
+}
+
+.pacman {
+  background: yellow;
+  border-radius: 50%;
+}
+
+.ghost {
+  background: red;
+  border-radius: 50%;
 }
