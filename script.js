@@ -3,40 +3,42 @@ const scoreEl = document.getElementById("score");
 const faseEl = document.getElementById("fase");
 const statusEl = document.getElementById("status");
 
-let map = [];
 let pacmanPos = 21;
-let ghosts = [];
+let direction = null;
+let map = [];
 let dots = 0;
 let score = 0;
 let fase = 1;
 
+// Novo labirinto com caminhos abertos
+const layout = [
+  // 0 = vazio, 1 = parede, 2 = ponto
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,1,
+  1,2,1,1,1,1,1,1,2,1,2,1,1,1,1,1,1,1,2,1,
+  1,2,1,2,2,2,2,1,2,2,2,1,2,2,2,2,1,2,2,1,
+  1,2,1,2,1,1,2,1,1,1,1,1,2,1,1,2,1,2,2,1,
+  1,2,2,2,1,2,2,2,2,2,2,2,2,2,1,2,2,2,2,1,
+  1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,1,1,1,2,1,
+  1,2,2,2,2,1,2,2,2,2,2,1,2,2,2,2,1,2,2,1,
+  1,1,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1,1,1,1,
+  1,2,2,1,2,2,2,2,2,1,2,1,2,2,2,2,1,2,2,1,
+  1,2,1,1,1,1,1,1,2,1,2,1,2,1,1,1,1,1,2,1,
+  1,2,2,2,2,2,2,1,2,1,2,2,2,1,2,2,2,2,2,1,
+  1,2,1,1,1,1,2,1,2,1,1,1,2,1,1,1,1,1,2,1,
+  1,2,1,2,2,2,2,1,2,2,2,1,2,2,2,2,1,2,2,1,
+  1,2,1,2,1,1,2,1,1,1,2,1,1,1,2,1,1,2,1,1,
+  1,2,2,2,1,2,2,2,2,1,2,2,2,1,2,2,2,2,2,1,
+  1,1,1,1,1,1,1,1,2,1,2,1,1,1,1,1,1,1,1,1,
+  1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,
+  1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+];
+
 function buildMap() {
   game.innerHTML = "";
   map = [];
-
-  const layout = [
-    // 0 = vazio, 1 = parede, 2 = ponto
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-    1,2,2,2,1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,1,
-    1,2,1,2,1,2,1,1,1,1,1,1,2,1,2,1,1,1,2,1,
-    1,2,1,2,1,2,2,2,2,2,2,1,2,1,2,2,2,1,2,1,
-    1,2,1,2,1,1,1,1,1,1,2,1,2,1,1,1,2,1,2,1,
-    1,2,2,2,2,2,2,2,2,1,2,1,2,2,2,1,2,2,2,1,
-    1,1,1,1,1,1,1,1,2,1,2,1,1,1,2,1,1,1,1,1,
-    1,2,2,2,2,2,2,1,2,1,2,2,2,1,2,2,2,2,2,1,
-    1,2,1,1,1,1,2,1,2,1,1,1,2,1,1,1,1,1,2,1,
-    1,2,2,2,2,2,2,1,2,2,2,1,2,2,2,2,2,1,2,1,
-    1,1,1,1,1,1,2,1,1,1,2,1,1,1,1,1,2,1,2,1,
-    1,2,2,2,2,1,2,2,2,1,2,1,2,2,2,1,2,2,2,1,
-    1,2,1,1,2,1,1,1,2,1,2,1,2,1,2,1,1,1,2,1,
-    1,2,1,2,2,2,2,1,2,1,2,2,2,1,2,2,2,1,2,1,
-    1,2,1,2,1,1,2,1,2,1,1,1,2,1,1,1,2,1,2,1,
-    1,2,1,2,1,2,2,1,2,2,2,1,2,2,2,1,2,2,2,1,
-    1,2,1,2,1,2,1,1,1,1,2,1,1,1,2,1,1,1,2,1,
-    1,2,2,2,1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,1,
-    1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-  ];
+  dots = 0;
 
   layout.forEach((val, i) => {
     const cell = document.createElement("div");
@@ -53,107 +55,62 @@ function buildMap() {
     map.push(cell);
   });
 
-  // Add Pac-Man
   map[pacmanPos].classList.add("pacman");
-
-  // Add ghosts
-  ghosts.forEach(pos => map[pos].classList.add("ghost"));
 }
 
-function movePacman(e) {
-  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-    map[pacmanPos].classList.remove("pacman");
+function movePacman() {
+  if (!direction) return;
 
-    let next = pacmanPos;
-    if (e.key === "ArrowUp") next -= 20;
-    if (e.key === "ArrowDown") next += 20;
-    if (e.key === "ArrowLeft") next -= 1;
-    if (e.key === "ArrowRight") next += 1;
+  const next = getNextPosition();
+  if (!map[next] || map[next].classList.contains("wall")) return;
 
-    if (!map[next].classList.contains("wall")) {
-      pacmanPos = next;
-    }
+  map[pacmanPos].classList.remove("pacman");
 
-    if (map[pacmanPos].classList.contains("dot")) {
-      map[pacmanPos].classList.remove("dot");
-      score++;
-      dots--;
-      scoreEl.textContent = "Pontos: " + score;
-      if (dots === 0) nextFase();
-    }
+  pacmanPos = next;
 
-    map[pacmanPos].classList.add("pacman");
-
-    checkCollision();
+  if (map[pacmanPos].classList.contains("dot")) {
+    map[pacmanPos].classList.remove("dot");
+    score++;
+    dots--;
+    scoreEl.textContent = "Pontos: " + score;
+    if (dots === 0) nextFase();
   }
+
+  map[pacmanPos].classList.add("pacman");
 }
 
-function moveGhosts() {
-  ghosts.forEach((g, i) => {
-    map[g].classList.remove("ghost");
-
-    let options = [g - 1, g + 1, g - 20, g + 20];
-    options = options.filter(
-      (o) =>
-        o >= 0 &&
-        o < 400 &&
-        !map[o].classList.contains("wall") &&
-        !ghosts.includes(o)
-    );
-
-    // perseguir pacman
-    options.sort((a, b) => {
-      const da = Math.abs(a % 20 - pacmanPos % 20) + Math.abs(Math.floor(a / 20) - Math.floor(pacmanPos / 20));
-      const db = Math.abs(b % 20 - pacmanPos % 20) + Math.abs(Math.floor(b / 20) - Math.floor(pacmanPos / 20));
-      return da - db;
-    });
-
-    ghosts[i] = options[0] || g;
-    map[ghosts[i]].classList.add("ghost");
-  });
-
-  checkCollision();
+function getNextPosition() {
+  if (direction === "up") return pacmanPos - 20;
+  if (direction === "down") return pacmanPos + 20;
+  if (direction === "left") return pacmanPos - 1;
+  if (direction === "right") return pacmanPos + 1;
 }
 
-function checkCollision() {
-  if (ghosts.includes(pacmanPos)) {
-    statusEl.textContent = "💀 Game Over!";
-    clearInterval(ghostInterval);
-    document.removeEventListener("keydown", movePacman);
-  }
-}
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowUp") direction = "up";
+  if (e.key === "ArrowDown") direction = "down";
+  if (e.key === "ArrowLeft") direction = "left";
+  if (e.key === "ArrowRight") direction = "right";
+});
 
 function nextFase() {
   fase++;
-  if (fase > 3) {
-    statusEl.textContent = "🏆 Você venceu todas as fases!";
-    return;
-  }
-
+  statusEl.textContent = `✨ Fase ${fase}`;
   pacmanPos = 21;
-  ghosts = fase === 2 ? [358, 61] : [358, 61, 280, 110, 140];
-  dots = 0;
-  score = 0;
-  faseEl.textContent = "Fase: " + fase;
-  scoreEl.textContent = "Pontos: 0";
   buildMap();
+  setTimeout(() => (statusEl.textContent = ""), 2000);
 }
-
-document.addEventListener("keydown", movePacman);
-let ghostInterval;
 
 function startGame() {
   pacmanPos = 21;
-  ghosts = [358]; // 1 fantasma na fase 1
-  dots = 0;
+  direction = null;
   score = 0;
   fase = 1;
-  statusEl.textContent = "";
-  faseEl.textContent = "Fase: 1";
   scoreEl.textContent = "Pontos: 0";
+  faseEl.textContent = "Fase: 1";
+  statusEl.textContent = "";
   buildMap();
-  ghostInterval = setInterval(moveGhosts, 500);
+  setInterval(movePacman, 150); // movimento contínuo
 }
 
 startGame();
-
