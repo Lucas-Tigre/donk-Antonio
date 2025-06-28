@@ -7,78 +7,78 @@ const fases = [
   {
     cor: "blue",
     fantasmas: 1,
-    mapa: [ // Mapa 1 - mais aberto
+    mapa: [
       "##################",
-      "#........##........#",
-      "#.####.#.##.####.#",
-      "#...............#",
-      "#.##.######.##.#",
-      "#.#..........#.#",
-      "#.#.##..##.#.#",
-      "#.#.#....#.#.#",
+      "#................#",
+      "#.####.####.####.#",
+      "#................#",
+      "#.##.######.##..#",
+      "#.#..........#..#",
+      "#.#.##..##..#..#",
+      "#.#.#....#..#..#",
       "#..............#",
-      "####.##.##.####",
+      "####.##.##.#####",
       "#..............#",
-      "#.#.#.##.#.#.#",
-      "#.#.#....#.#.#",
-      "#.#.######.#.#",
-      "#............#",
-      "#.####..####.#",
+      "#.#.#.##.#..#..#",
+      "#.#.#....#..#..#",
+      "#.#.######..#..#",
+      "#............#.#",
+      "#.####..####.#.#",
       "#..............#",
-      "#.##########.#",
-      "#............#",
+      "#.##########.#.#",
+      "#............#.#",
       "##################"
     ]
   },
   {
     cor: "purple",
     fantasmas: 2,
-    mapa: [ // Mapa 2 - mais fechado
+    mapa: [
       "##################",
-      "#........#........#",
-      "#.######.#.######.#",
-      "#..................#",
-      "#.####.####.####.#",
-      "#.#..........#.#",
-      "#.#.##..##.#.#",
-      "#.#.#....#.#.#",
-      "#...#....#...#",
-      "#####.##.#####",
-      "#...#....#...#",
-      "#.#.#.##.#.#.#",
-      "#.#.#....#.#.#",
-      "#.#.######.#.#",
-      "#............#",
-      "#.####..####.#",
+      "#....#....#....#.#",
+      "#.##.#.##.#.##.#.#",
+      "#................#",
+      "#.######.######..#",
+      "#.#..........#..#",
+      "#.#.##..##..#..#",
+      "#.#.#....#..#..#",
       "#..............#",
-      "#.##########.#",
-      "#............#",
+      "#####.##.##.#####",
+      "#..............#",
+      "#.#.#.##.#..#..#",
+      "#.#.#....#..#..#",
+      "#.#.######..#..#",
+      "#............#.#",
+      "#.####..####.#.#",
+      "#..............#",
+      "#.##########.#.#",
+      "#............#.#",
       "##################"
     ]
   },
   {
     cor: "red",
     fantasmas: 5,
-    mapa: [ // Mapa 3 - mais labiríntico
+    mapa: [
       "##################",
       "#....#....#....#.#",
       "#.##.#.##.#.##.#.#",
       "#................#",
-      "#.######.######.#",
-      "#.#..........#.#",
-      "#.#.##..##.#.#",
-      "#.#.#....#.#.#",
+      "#.######.######..#",
+      "#.#..........#..#",
+      "#.#.##..##..#..#",
+      "#.#.#....#..#..#",
       "#..............#",
-      "####.##.##.####",
+      "#####.##.##.#####",
       "#..............#",
-      "#.#.#.##.#.#.#",
-      "#.#.#....#.#.#",
-      "#.#.######.#.#",
-      "#............#",
-      "#.####..####.#",
+      "#.#.#.##.#..#..#",
+      "#.#.#....#..#..#",
+      "#.#.######..#..#",
+      "#............#.#",
+      "#.####..####.#.#",
       "#..............#",
-      "#.##########.#",
-      "#............#",
+      "#.##########.#.#",
+      "#............#.#",
       "##################"
     ]
   }
@@ -98,7 +98,7 @@ function iniciarJogo() {
   pontos = 0;
   carregarFase();
   intervaloPacman = setInterval(moverPacman, 150);
-  intervaloFantasmas = setInterval(moverFantasmas, 500);
+  intervaloFantasmas = setInterval(moverFantasmas, 400);
   document.addEventListener("keydown", mudarDirecao);
 }
 
@@ -110,32 +110,36 @@ function carregarFase() {
     return;
   }
 
-  game.style.setProperty("--wall-color", fases[fase].cor);
+  const config = fases[fase];
+  game.style.setProperty("--wall-color", config.cor);
   mapaAtual = [];
   game.innerHTML = "";
   fantasmas = [];
   direcao = null;
-  pacmanPos = 1;
+  pacmanPos = 19; // posição inicial no canto
 
-  const mapaTexto = fases[fase].mapa.join("").split("");
-  mapaTexto.forEach((c, i) => {
-    const cell = document.createElement("div");
-    cell.classList.add("cell");
+  config.mapa.forEach((linha, rowIndex) => {
+    for (let col = 0; col < linha.length; col++) {
+      const index = rowIndex * 18 + col;
+      const cell = document.createElement("div");
+      cell.classList.add("cell");
 
-    if (c === "#") cell.classList.add("wall");
-    else if (c === ".") {
-      cell.classList.add("dot");
-      pontos++;
+      if (linha[col] === "#") {
+        cell.classList.add("wall");
+      } else if (linha[col] === ".") {
+        cell.classList.add("dot");
+        pontos++;
+      }
+
+      game.appendChild(cell);
+      mapaAtual.push(cell);
     }
-
-    game.appendChild(cell);
-    mapaAtual.push(cell);
   });
 
   mapaAtual[pacmanPos].classList.add("pacman");
 
-  for (let i = 0; i < fases[fase].fantasmas; i++) {
-    const gPos = 340 + i;
+  for (let i = 0; i < config.fantasmas; i++) {
+    const gPos = 360 - i * 18 - 2;
     mapaAtual[gPos].classList.add("ghost");
     fantasmas.push(gPos);
   }
@@ -153,9 +157,10 @@ function mudarDirecao(e) {
 
 function moverPacman() {
   if (!direcao) return;
+
   let destino = pacmanPos + direcao;
 
-  // Teletransporte lateral
+  // Atalho lateral
   if (pacmanPos % 18 === 0 && direcao === -1) destino = pacmanPos + 17;
   if (pacmanPos % 18 === 17 && direcao === 1) destino = pacmanPos - 17;
 
@@ -193,11 +198,7 @@ function moverFantasmas() {
       !fantasmas.includes(o)
     );
 
-    opcoes.sort((a, b) => {
-      const da = distancia(a, pacmanPos);
-      const db = distancia(b, pacmanPos);
-      return da - db;
-    });
+    opcoes.sort((a, b) => distancia(a, pacmanPos) - distancia(b, pacmanPos));
 
     fantasmas[i] = opcoes[0] || pos;
     mapaAtual[fantasmas[i]].classList.add("ghost");
