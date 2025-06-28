@@ -3,8 +3,12 @@ const ctx = canvas.getContext("2d");
 
 // Tamanho dos blocos do labirinto
 const blockSize = 20;
-const rows = 22;  // quantidade de linhas do array maze abaixo
-const cols = 28;  // quantidade de colunas do array maze
+const rows = 22;  // linhas no labirinto
+const cols = 28;  // colunas no labirinto
+
+// Ajuste o tamanho do canvas para combinar com labirinto
+canvas.width = cols * blockSize;  // 560
+canvas.height = rows * blockSize; // 440
 
 // Labirinto - 0: caminho vazio, 1: parede azul, 2: ponto para comer
 const maze = [
@@ -74,10 +78,9 @@ function updatePacman() {
     let nextX = pacman.x + pacman.dx * pacman.speed;
     let nextY = pacman.y + pacman.dy * pacman.speed;
 
-    let col = Math.floor(nextX / blockSize);
-    let row = Math.floor(nextY / blockSize);
+    let col = Math.floor((nextX + pacman.size / 2) / blockSize);
+    let row = Math.floor((nextY + pacman.size / 2) / blockSize);
 
-    // Verifica colisão com paredes (1)
     if (maze[row] && maze[row][col] !== 1) {
         pacman.x = nextX;
         pacman.y = nextY;
