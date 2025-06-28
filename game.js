@@ -128,7 +128,7 @@ function carregarFase() {
         cell.classList.add("wall");
       } else if (linha[col] === ".") {
         cell.classList.add("dot");
-        pontos++;
+        pontos++; // Incrementa a contagem de pontos
       }
 
       game.appendChild(cell);
@@ -174,7 +174,7 @@ function moverPacman() {
 
   if (mapaAtual[pacmanPos].classList.contains("dot")) {
     mapaAtual[pacmanPos].classList.remove("dot");
-    pontos--;
+    pontos++; // Incrementa a pontuação ao coletar um ponto
     scoreEl.textContent = "Pontos: " + (parseInt(scoreEl.textContent.split(" ")[1]) + 1);
     if (pontos === 0) {
       fase++;
