@@ -1,43 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Pac-Man Simples</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8" />
+    <title>Pac-Man</title>
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Pac-Man Simples</h1>
-
-  <div id="startScreen">
-    <h2>Bem-vindo ao Pac-Man!</h2>
-    <p>Use as setas do teclado para jogar.</p>
-    <button onclick="startGame()">Iniciar Jogo</button>
-  </div>
-
-  <div id="game-container">
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
-    <p id="statusBar">Vidas: 3 | Pontos: 0</p>
-    <div id="message"></div>
-  </div>
-
-  <div id="gameOverScreen" style="display: none;">
-    <h2>Game Over</h2>
-    <p id="finalScore"></p>
-    <button onclick="startGame()">Jogar Novamente</button>
-  </div>
-
-  <button id="startBtn" style="display:none">Começar Jogo</button>
-
-  <script src="game.js"></script>
-  <script>
-    function startGame() {
-      if (typeof startPacmanGame === 'function') {
-        startPacmanGame();
-      } else {
-        console.error('Função startPacmanGame não definida.');
-      }
-    }
-  </script>
+    <canvas id="gameCanvas" width="560" height="620"></canvas>
+    <script src="game.js"></script>
 </body>
 </html>
