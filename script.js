@@ -233,9 +233,15 @@ function movePacman() {
 function createGhost(x, y, color) {
   const ghost = document.createElement('div');
   ghost.className = 'ghost';
+
+  if (color === '#F00') ghost.classList.add('red');
+  else if (color === '#0FF') ghost.classList.add('blue');
+  else if (color === '#FF0') ghost.classList.add('yellow');
+
   ghost.style.left = x + 'px';
   ghost.style.top = y + 'px';
-  ghost.style.backgroundColor = color;
+  // Remova esta linha para evitar sobrescrever a imagem:
+  // ghost.style.backgroundColor = color;
   gameContainer.appendChild(ghost);
   ghosts.push({ element: ghost, x, y, dirX: 0, dirY: 0 });
 }
