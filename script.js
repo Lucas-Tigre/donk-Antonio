@@ -4,19 +4,20 @@ const scoreElement = document.getElementById('score');
 const statusElement = document.getElementById('status');
 const restartButton = document.getElementById('restart');
 const pauseButton = document.getElementById('pause');
+
 let gamePaused = false;
+let gameInterval = null;
 
 pauseButton.addEventListener('click', () => {
   if (gamePaused) {
-    // Continuar o jogo
-    gameInterval = setInterval(updateGame, 100);
-    startPhaseTimer();
+    if (!gameInterval) {
+      gameInterval = setInterval(updateGame, 100);
+    }
     pauseButton.textContent = 'Pausar';
     gamePaused = false;
   } else {
-    // Pausar o jogo
     clearInterval(gameInterval);
-    clearInterval(phaseTimerInterval);
+    gameInterval = null;
     pauseButton.textContent = 'Continuar';
     gamePaused = true;
   }
@@ -24,7 +25,6 @@ pauseButton.addEventListener('click', () => {
 
 const tileSize = 20;
 const powerUpDuration = 8000;
-const phaseTimeLimit = 60;
 
 const maps = [
   [
@@ -40,38 +40,33 @@ const maps = [
     [1,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,2,2,1],
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
   ],
-  // (Você pode adicionar as outras fases depois)
-  [ // Fase 2 (novo mapa)
+  [
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,3,2,2,1,2,2,2,2,1,2,2,2,1,2,2,2,3,2,1],
-    [1,2,1,2,1,2,1,1,2,1,2,1,2,1,2,1,1,1,2,1],
-    [1,2,1,2,2,2,2,1,2,2,2,1,2,2,2,1,2,1,2,1],
-    [1,2,1,1,1,1,2,1,1,1,2,1,1,1,2,1,2,1,2,1],
-    [1,2,2,2,2,1,2,2,2,2,2,2,2,1,2,2,2,1,2,1],
-    [1,1,1,1,2,1,1,1,1,1,1,1,2,1,1,1,2,1,2,1],
-    [1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,1,2,2,2,1],
-    [1,2,1,1,1,1,1,1,2,1,1,1,1,1,2,1,1,1,2,1],
-    [1,3,2,2,2,2,2,1,2,2,2,2,2,2,3,2,2,3,2,1],
+    [1,2,2,2,1,2,2,2,1,2,2,2,1,2,2,2,2,2,2,1],
+    [1,2,1,2,1,2,1,1,1,1,1,2,1,2,1,1,1,1,2,1],
+    [1,3,1,2,2,2,2,2,2,1,2,2,2,2,2,2,2,1,2,1],
+    [1,2,1,1,1,1,2,1,2,1,2,1,1,1,1,1,2,1,2,1],
+    [1,2,2,2,2,2,2,1,2,2,3,1,2,2,2,2,2,1,2,1],
+    [1,1,1,1,1,1,2,1,1,1,2,1,2,1,1,1,1,1,2,1],
+    [1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,1],
+    [1,2,1,1,1,1,2,1,2,1,1,1,1,1,1,1,1,1,2,1],
+    [1,2,2,2,3,2,2,1,2,2,2,2,2,2,2,2,2,2,2,1],
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
   ],
-
-   [ // Fase 3 - Labirinto mais complexo com mais paredes e power-ups
+  [
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,2,3,2,1,2,2,3,2,2,2,3,1,2,3,2,3,2,2,1],
-    [1,2,1,2,1,2,1,1,1,1,1,2,1,2,1,1,1,1,2,1],
-    [1,3,1,2,2,2,3,2,2,1,2,2,2,2,2,3,2,1,2,1],
-    [1,2,1,1,1,1,1,1,2,1,2,1,1,1,1,1,2,1,2,1],
-    [1,2,2,2,2,2,2,1,2,2,2,1,2,2,2,2,2,1,3,1],
-    [1,1,1,1,1,1,2,1,1,1,2,1,2,1,1,1,1,1,2,1],
-    [1,2,3,2,2,2,2,2,2,1,2,2,3,2,2,2,2,2,2,1],
-    [1,2,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,2,1],
-    [1,2,3,2,2,3,2,1,2,2,2,3,2,2,3,2,3,2,2,1],
+    [1,2,3,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,2,1],
+    [1,2,1,1,1,1,1,2,1,2,1,1,1,1,1,1,1,1,2,1],
+    [1,2,1,2,2,2,1,2,2,2,1,2,2,2,2,2,2,1,2,1],
+    [1,2,1,2,1,2,1,1,1,1,1,2,1,1,1,1,2,1,2,1],
+    [1,2,2,2,1,2,2,2,2,2,2,3,1,2,2,2,2,1,2,1],
+    [1,2,1,1,1,1,1,2,1,1,1,2,1,2,1,1,1,1,2,1],
+    [1,3,2,2,2,2,2,2,1,2,2,2,1,2,2,2,2,2,2,1],
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
   ],
 ];
 
 let map = maps[0];
-
 let score = 0;
 let collectedCoins = 0;
 let totalCoins = 0;
@@ -79,17 +74,13 @@ let pacmanX = tileSize;
 let pacmanY = tileSize;
 let direction = 0;
 let nextDirection = 0;
-let gameInterval;
 let coins = [];
 let walls = [];
 let ghosts = [];
-
 let currentPhase = 1;
 let lives = 3;
 let powerUpActive = false;
 let powerUpTimeout = null;
-let phaseTimeLeft = phaseTimeLimit;
-let phaseTimerInterval = null;
 
 function createWall(x, y, width, height) {
   const wall = document.createElement('div');
@@ -105,22 +96,22 @@ function createWall(x, y, width, height) {
 function createCoin(x, y) {
   const coin = document.createElement('div');
   coin.className = 'coin';
-  coin.style.left = x + 'px';
-  coin.style.top = y + 'px';
+  coin.style.left = (x + tileSize / 2 - 3) + 'px';
+  coin.style.top = (y + tileSize / 2 - 3) + 'px';
   gameContainer.appendChild(coin);
-  coins.push({ element: coin, x, y, collected: false, powerUp: false });
+  coins.push({ element: coin, x: x + tileSize / 2 - 3, y: y + tileSize / 2 - 3, collected: false, powerUp: false });
 }
 
 function createPowerUp(x, y) {
   const powerup = document.createElement('div');
   powerup.className = 'coin';
-  powerup.style.left = x + 'px';
-  powerup.style.top = y + 'px';
   powerup.style.width = '10px';
   powerup.style.height = '10px';
   powerup.style.backgroundColor = '#0F0';
+  powerup.style.left = (x + tileSize / 2 - 5) + 'px';
+  powerup.style.top = (y + tileSize / 2 - 5) + 'px';
   gameContainer.appendChild(powerup);
-  coins.push({ element: powerup, x, y, collected: false, powerUp: true });
+  coins.push({ element: powerup, x: x + tileSize / 2 - 5, y: y + tileSize / 2 - 5, collected: false, powerUp: true });
 }
 
 function createMap() {
@@ -130,19 +121,18 @@ function createMap() {
   coins = [];
   totalCoins = 0;
 
-  for(let row=0; row < map.length; row++){
-    for(let col=0; col < map[row].length; col++){
+  map = maps[currentPhase - 1];
+  for (let row = 0; row < map.length; row++) {
+    for (let col = 0; col < map[row].length; col++) {
       const cell = map[row][col];
       const x = col * tileSize;
       const y = row * tileSize;
-
-      if(cell === 1) createWall(x, y, tileSize, tileSize);
-      else if(cell === 2){
-        createCoin(x + 7, y + 7);
+      if (cell === 1) createWall(x, y, tileSize, tileSize);
+      else if (cell === 2) {
+        createCoin(x, y);
         totalCoins++;
-      }
-      else if(cell === 3){
-        createPowerUp(x + 5, y + 5);
+      } else if (cell === 3) {
+        createPowerUp(x, y);
         totalCoins++;
       }
     }
@@ -150,45 +140,26 @@ function createMap() {
 }
 
 function isCollisionWithWalls(x, y, width, height) {
-  for (const wall of walls) {
-    if (
-      x < wall.x + wall.width &&
-      x + width > wall.x &&
-      y < wall.y + wall.height &&
-      y + height > wall.y
-    ) {
-      return true;
-    }
-  }
-  return false;
+  return walls.some(wall =>
+    x < wall.x + wall.width &&
+    x + width > wall.x &&
+    y < wall.y + wall.height &&
+    y + height > wall.y
+  );
 }
 
 function isColliding(x1, y1, w1, h1, x2, y2, w2, h2) {
-  return !(
-    x1 + w1 <= x2 ||
-    x1 >= x2 + w2 ||
-    y1 + h1 <= y2 ||
-    y1 >= y2 + h2
-  );
+  return !(x1 + w1 <= x2 || x1 >= x2 + w2 || y1 + h1 <= y2 || y1 >= y2 + h2);
 }
 
 function handleKeyPress(e) {
   switch (e.key) {
-    case 'ArrowUp':
-      nextDirection = 1;
-      break;
-    case 'ArrowRight':
-      nextDirection = 2;
-      break;
-    case 'ArrowDown':
-      nextDirection = 3;
-      break;
-    case 'ArrowLeft':
-      nextDirection = 4;
-      break;
+    case 'ArrowUp': nextDirection = 1; break;
+    case 'ArrowRight': nextDirection = 2; break;
+    case 'ArrowDown': nextDirection = 3; break;
+    case 'ArrowLeft': nextDirection = 4; break;
   }
 }
-
 function updateDirection() {
   if (nextDirection === 0) return;
 
@@ -196,10 +167,10 @@ function updateDirection() {
   let newY = pacmanY;
 
   switch (nextDirection) {
-  case 1: newY -= 8; break;
-  case 2: newX += 8; break;
-  case 3: newY += 8; break;
-  case 4: newX -= 8; break;
+    case 1: newY -= 5; break;
+    case 2: newX += 5; break;
+    case 3: newY += 5; break;
+    case 4: newX -= 5; break;
   }
 
   if (!isCollisionWithWalls(newX, newY, tileSize, tileSize)) {
@@ -211,12 +182,12 @@ function movePacman() {
   let newX = pacmanX;
   let newY = pacmanY;
 
- switch (nextDirection) {
-  case 1: newY -= 8; break;
-  case 2: newX += 8; break;
-  case 3: newY += 8; break;
-  case 4: newX -= 8; break;
-}
+  switch (direction) {
+    case 1: newY -= 5; break;
+    case 2: newX += 5; break;
+    case 3: newY += 5; break;
+    case 4: newX -= 5; break;
+  }
 
   // Limita dentro dos limites do container
   newX = Math.max(0, Math.min(newX, gameContainer.clientWidth - tileSize));
@@ -240,53 +211,114 @@ function createGhost(x, y, color) {
 
   ghost.style.left = x + 'px';
   ghost.style.top = y + 'px';
-  // Remova esta linha para evitar sobrescrever a imagem:
-  // ghost.style.backgroundColor = color;
   gameContainer.appendChild(ghost);
   ghosts.push({ element: ghost, x, y, dirX: 0, dirY: 0 });
 }
 
-function createGhost(x, y, color) {
-  const ghost = document.createElement('div');
-  ghost.className = 'ghost';
+function createGhosts() {
+  ghosts.forEach(g => g.element.remove());
+  ghosts = [];
 
-  if (color === '#F00') ghost.classList.add('red');
-  else if (color === '#0FF') ghost.classList.add('blue');
-  else if (color === '#FF0') ghost.classList.add('yellow');
-
-  ghost.style.left = x + 'px';
-  ghost.style.top = y + 'px';
-  gameContainer.appendChild(ghost);
-  ghosts.push({ element: ghost, x, y, dirX: 0, dirY: 0 });
+  if (currentPhase === 1) {
+    createGhost(360, 40, '#F00'); // 1 fantasma vermelho
+  } else if (currentPhase === 2) {
+    createGhost(360, 40, '#F00'); // vermelho
+    createGhost(340, 140, '#0FF'); // azul
+  } else if (currentPhase === 3) {
+    createGhost(360, 40, '#F00'); // vermelho
+    createGhost(340, 140, '#0FF'); // azul
+    createGhost(140, 140, '#FF0'); // amarelo
+  }
 }
 
 function moveGhosts() {
+  const directions = [
+    { x: 0, y: -5 },
+    { x: 5, y: 0 },
+    { x: 0, y: 5 },
+    { x: -5, y: 0 }
+  ];
+
   ghosts.forEach(ghost => {
-    // Movimento aleatório simples
+    // Se não tem direção, escolhe aleatória
     if (ghost.dirX === 0 && ghost.dirY === 0) {
-      const dirs = [
-        { x: 0, y: -5 },
-        { x: 5, y: 0 },
-        { x: 0, y: 5 },
-        { x: -5, y: 0 }
-      ];
-      const d = dirs[Math.floor(Math.random() * dirs.length)];
+      const d = directions[Math.floor(Math.random() * directions.length)];
       ghost.dirX = d.x;
       ghost.dirY = d.y;
+      ghost.prevDirX = 0;
+      ghost.prevDirY = 0;
     }
 
     let newX = ghost.x + ghost.dirX;
     let newY = ghost.y + ghost.dirY;
 
-    // Se colidir com parede, muda direção
     if (isCollisionWithWalls(newX, newY, tileSize, tileSize)) {
-      ghost.dirX = 0;
-      ghost.dirY = 0;
-    } else {
-      ghost.x = newX;
-      ghost.y = newY;
-      ghost.element.style.left = ghost.x + 'px';
-      ghost.element.style.top = ghost.y + 'px';
+      // Tenta escolher nova direção diferente da oposta da atual
+      let possibleDirs = directions.filter(d =>
+        !(d.x === -ghost.dirX && d.y === -ghost.dirY)
+      );
+
+      // Escolhe uma direção válida que não bata na parede
+      let found = false;
+      for (let i = 0; i < possibleDirs.length; i++) {
+        const d = possibleDirs[i];
+        if (!isCollisionWithWalls(ghost.x + d.x, ghost.y + d.y, tileSize, tileSize)) {
+          ghost.dirX = d.x;
+          ghost.dirY = d.y;
+          found = true;
+          break;
+        }
+      }
+
+      // Se nenhuma direção válida, inverte
+      if (!found) {
+        ghost.dirX = -ghost.dirX;
+        ghost.dirY = -ghost.dirY;
+      }
+
+      newX = ghost.x + ghost.dirX;
+      newY = ghost.y + ghost.dirY;
+    }
+
+    ghost.x = newX;
+    ghost.y = newY;
+    ghost.element.style.left = ghost.x + 'px';
+    ghost.element.style.top = ghost.y + 'px';
+  });
+}
+
+function checkGhostCollision() {
+  ghosts.forEach((ghost, index) => {
+    if (isColliding(pacmanX, pacmanY, tileSize, tileSize,
+                    ghost.x, ghost.y, tileSize, tileSize)) {
+      if (powerUpActive) {
+        // "Comer" fantasma: remove ele e reaparece na posição inicial
+        ghost.element.remove();
+        ghosts.splice(index, 1);
+        // Opcional: pode criar um novo fantasma na posição inicial depois de um tempo
+        setTimeout(() => {
+          if (currentPhase === 1) {
+            createGhost(360, 40, '#F00');
+          } else if (currentPhase === 2) {
+            // recria os fantasmas conforme a fase (ajuste conforme sua lógica)
+            createGhost(360, 40, '#F00');
+            createGhost(340, 140, '#0FF');
+          } else if (currentPhase === 3) {
+            createGhost(360, 40, '#F00');
+            createGhost(340, 140, '#0FF');
+            createGhost(140, 140, '#FF0');
+          }
+        }, 3000); // reaparece após 3 segundos
+      } else {
+        // Pac-Man leva dano
+        lives--;
+        updateScoreAndLives();
+        if (lives <= 0) {
+          endGame(false);
+        } else {
+          resetPositions();
+        }
+      }
     }
   });
 }
@@ -300,65 +332,41 @@ function checkCoinCollision() {
         coin.element.style.display = 'none';
         score++;
         collectedCoins++;
-        updateScoreAndLives();
-
         if (coin.powerUp) {
           activatePowerUp();
         }
       }
     }
   });
+
+  updateScoreAndLives();
+
+  if (collectedCoins >= totalCoins) {
+    endGame(true);
+  }
 }
 
 function activatePowerUp() {
   powerUpActive = true;
-  updateScoreAndLives();
   if (powerUpTimeout) clearTimeout(powerUpTimeout);
-
   powerUpTimeout = setTimeout(() => {
     powerUpActive = false;
     updateScoreAndLives();
   }, powerUpDuration);
 }
 
-function checkGhostCollision() {
-  const collisionSize = 16;
-  const offset = (tileSize - collisionSize) / 2;
-
-  for (const ghost of ghosts) {
-    if (isColliding(
-      pacmanX + offset, pacmanY + offset, collisionSize, collisionSize,
-      ghost.x + offset, ghost.y + offset, collisionSize, collisionSize
-    )) {
-      if (powerUpActive) {
-        // Fantasma comido
-        ghost.element.style.display = 'none';
-        ghosts = ghosts.filter(g => g !== ghost);
-        score += 5;
-        updateScoreAndLives();
-      } else {
-        lives--;
-        updateScoreAndLives();
-        if (lives <= 0) {
-          endGame(false);
-        } else {
-          // Resetar posição e fantasmas
-          pacmanX = tileSize;
-          pacmanY = tileSize;
-          pacman.style.left = pacmanX + 'px';
-          pacman.style.top = pacmanY + 'px';
-          direction = 0;
-          nextDirection = 0;
-          createGhosts();
-        }
-      }
-      break;
-    }
-  }
+function updateScoreAndLives() {
+  scoreElement.textContent = `Pontos: ${score} | Vidas: ${lives}` + (powerUpActive ? ' | Soro da HYDRA!' : '');
 }
 
-function updateScoreAndLives() {
-  scoreElement.textContent = `Pontos: ${score} | Vidas: ${lives}` + (powerUpActive ? ' | POWER-UP ATIVO!' : '');
+function resetPositions() {
+  pacmanX = tileSize;
+  pacmanY = tileSize;
+  direction = 0;
+  nextDirection = 0;
+  pacman.style.left = pacmanX + 'px';
+  pacman.style.top = pacmanY + 'px';
+  createGhosts();
 }
 
 function updateGame() {
@@ -366,39 +374,16 @@ function updateGame() {
   movePacman();
   moveGhosts();
   checkCoinCollision();
-  checkGhostCollision();
-
-  if (collectedCoins >= totalCoins) {
-    endGame(true);
-  }
-}
-
-function startPhaseTimer() {
-  phaseTimeLeft = phaseTimeLimit;
-  statusElement.style.display = 'none';
-
-  if (phaseTimerInterval) clearInterval(phaseTimerInterval);
-
-  phaseTimerInterval = setInterval(() => {
-    phaseTimeLeft--;
-    if (phaseTimeLeft <= 0) {
-      clearInterval(phaseTimerInterval);
-      endGame(false);
-    }
-  }, 1000);
+  checkGhostCollision();  
 }
 
 function endGame(won) {
   clearInterval(gameInterval);
-  //clearInterval(phaseTimerInterval);
   statusElement.style.display = 'block';
   restartButton.style.display = 'block';
 
   if (won) {
     statusElement.textContent = `Você venceu a fase ${currentPhase}!`;
-    // Remova a linha abaixo:
-    // currentPhase++;
-
     if (currentPhase >= maps.length) {
       statusElement.textContent = 'Parabéns! Você completou todas as fases!';
       restartButton.textContent = 'Reiniciar Jogo';
@@ -414,6 +399,12 @@ function endGame(won) {
 function restartGame() {
   statusElement.style.display = 'none';
   restartButton.style.display = 'none';
+
+  if (gameInterval) {
+    clearInterval(gameInterval);
+    gameInterval = null;
+  }
+
   map = maps[currentPhase - 1];
   createMap();
   createGhosts();
@@ -428,22 +419,21 @@ function restartGame() {
   pacman.style.left = pacmanX + 'px';
   pacman.style.top = pacmanY + 'px';
   updateScoreAndLives();
-  //startPhaseTimer();
-
   gameInterval = setInterval(updateGame, 100);
+  gamePaused = false;
+  pauseButton.textContent = 'Pausar';
 }
 
 restartButton.addEventListener('click', () => {
   if (restartButton.textContent === 'Próxima fase') {
     currentPhase++;
   } else {
-    currentPhase = 1; // Reiniciar do começo se perdeu ou reiniciou manualmente
+    currentPhase = 1;
   }
   restartGame();
 });
 
 const touchControls = document.getElementById('touch-controls');
-
 touchControls.addEventListener('click', (e) => {
   if (e.target.tagName === 'BUTTON') {
     nextDirection = parseInt(e.target.getAttribute('data-dir'));
@@ -456,5 +446,4 @@ window.onload = () => {
   updateScoreAndLives();
   document.addEventListener('keydown', handleKeyPress);
   gameInterval = setInterval(updateGame, 100);
-  startPhaseTimer();
 };
