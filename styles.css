@@ -70,13 +70,13 @@ body {
     position: absolute;
     width: 6px;
     height: 6px;
-    background-color: #d5b100;
+    background-color: #FFF;
     border-radius: 50%;
 }
 
 .wall {
     position: absolute;
-    background-color: rgb(7, 7, 91);
+    background-color: #00F;
 }
 
 .ghost {
