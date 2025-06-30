@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Jogo estilo Pac-Man</title>
+    <title>Antininho e os Alurinhas 1</title>
     <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -17,12 +17,19 @@
     <div id="status"></div>
     <div id="pacman"></div>
 </div>
-
+    
     <div id="touch-controls">
-      <button data-dir="1">↑</button>
-      <button data-dir="4">←</button>
-      <button data-dir="3">↓</button>
-      <button data-dir="2">→</button>
+      <button data-dir="1" class="up">↑</button>
+      <div class="middle-row">
+        <button data-dir="4" class="left">←</button>
+        <div class="spacer"></div>
+        <button data-dir="2" class="right">→</button>
+      </div>
+      <button data-dir="3" class="down">↓</button>
+    </div>
+
+    <div id="powerup-info" style="color: #FF0; text-align: center; margin-top: 10px; max-width: 400px; font-size: 14px; font-family: Arial, sans-serif;">
+      <strong>Soro da HYDRA:</strong> Ativou? Já era! O Antininho vai sofrer: o curso da Alura desaparece, mas no lugar surgem trocentos outros cursos !! Dica: é a bolinha verde... Outra dica: veja os padrões e use a seu favor!   
     </div>
 
     <script src="script.js"></script>
