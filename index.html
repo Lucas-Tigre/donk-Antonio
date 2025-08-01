@@ -5,20 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Antoninho e os Alurinhas 1</title>
     <link rel="stylesheet" href="styles.css" />
+    <style>
+        /* Estilos adicionais para o joystick */
+        #joystick-status {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            z-index: 1000;
+        }
+        
+        #joystick-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 5px 10px;
+            background: #FF5722;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+        
+        #joystick-btn.connected {
+            background: #4CAF50;
+        }
+    </style>
 </head>
 <body>
    <div id="header">
     <div id="score">Pontos: 0 | Vidas: 3</div>
     <button id="restart">Reiniciar Jogo</button>
     <button id="pause">Pausar</button>
-</div>
+   </div>
 
-<div id="game-container">
+   <div id="game-container">
     <div id="status"></div>
+    <div id="game"></div>
     <div id="pacman"></div>
-</div>
+   </div>
     
-    <div id="touch-controls">
+   <div id="touch-controls">
       <button data-dir="1" class="up">↑</button>
       <div class="middle-row">
         <button data-dir="4" class="left">←</button>
@@ -26,12 +58,12 @@
         <button data-dir="2" class="right">→</button>
       </div>
       <button data-dir="3" class="down">↓</button>
-    </div>
+   </div>
 
-    <div id="powerup-info" style="color: #FF0; text-align: center; margin-top: 10px; max-width: 400px; font-size: 14px; font-family: Arial, sans-serif;">
+   <div id="powerup-info">
       <strong>Soro da HYDRA:</strong> Ativou? Já era! O Antoninho vai sofrer: o curso da Alura desaparece, mas no lugar surgem trocentos outros cursos !! Dica: é a bolinha verde... Outra dica: veja os padrões e use a seu favor!   
-    </div>
+   </div>
 
-    <script src="script.js"></script>
+   <script src="script.js"></script>
 </body>
 </html>

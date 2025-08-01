@@ -93,6 +93,11 @@ let fase = 0;
 let intervaloPacman;
 let intervaloFantasmas;
 
+// Variáveis para controle do joystick
+let serialPort;
+let reader;
+let isJoystickConnected = false;
+
 function iniciarJogo() {
   fase = 0;
   pontos = 0;
@@ -100,10 +105,92 @@ function iniciarJogo() {
   intervaloPacman = setInterval(moverPacman, 150);
   intervaloFantasmas = setInterval(moverFantasmas, 400);
   document.addEventListener("keydown", mudarDirecao);
+  
+  // Adiciona botão de conexão do joystick
+  adicionarBotaoJoystick();
+}
+
+function adicionarBotaoJoystick() {
+  if (!('serial' in navigator)) return;
+  
+  const btn = document.createElement('button');
+  btn.textContent = 'Conectar Joystick';
+  btn.style.position = 'absolute';
+  btn.style.top = '10px';
+  btn.style.left = '10px';
+  btn.style.padding = '5px 10px';
+  btn.style.zIndex = '1000';
+  document.body.appendChild(btn);
+  
+  btn.addEventListener('click', async () => {
+    if (!isJoystickConnected) {
+      await conectarJoystick();
+      btn.textContent = 'Desconectar Joystick';
+    } else {
+      await desconectarJoystick();
+      btn.textContent = 'Conectar Joystick';
+    }
+  });
+}
+
+async function conectarJoystick() {
+  try {
+    serialPort = await navigator.serial.requestPort();
+    await serialPort.open({ baudRate: 9600 });
+    reader = serialPort.readable.getReader();
+    isJoystickConnected = true;
+    statusEl.textContent = 'Joystick conectado!';
+    
+    // Loop de leitura dos dados
+    while (isJoystickConnected) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      
+      const data = new TextDecoder().decode(value).trim();
+      processarDadosJoystick(data);
+    }
+  } catch (error) {
+    console.error('Erro:', error);
+    statusEl.textContent = 'Erro ao conectar joystick';
+    isJoystickConnected = false;
+  }
+}
+
+function processarDadosJoystick(data) {
+  const parts = data.split(',');
+  if (parts.length < 4) return;
+  
+  const dirPart = parts.find(part => part.startsWith('DIR:'));
+  if (!dirPart) return;
+  
+  const direction = dirPart.split(':')[1];
+  
+  // Mapeia as direções do joystick
+  if (direction.includes('U')) direcao = -18;    // Cima
+  else if (direction.includes('D')) direcao = 18; // Baixo
+  else if (direction.includes('L')) direcao = -1; // Esquerda
+  else if (direction.includes('R')) direcao = 1;  // Direita
+  
+  // Verifica botão pressionado (para reiniciar)
+  const btnPart = parts.find(part => part.startsWith('BTN:'));
+  if (btnPart && btnPart.split(':')[1] === '1') {
+    if (statusEl.textContent.includes("Game Over") || statusEl.textContent.includes("Você venceu")) {
+      iniciarJogo();
+    }
+  }
+}
+
+async function desconectarJoystick() {
+  if (reader) {
+    await reader.cancel();
+    await serialPort.close();
+  }
+  isJoystickConnected = false;
+  statusEl.textContent = '';
 }
 
 function carregarFase() {
-  if (fase > 2) {
+  if (fase >= fases.length) {
     statusEl.textContent = "🏆 Você venceu todas as fases!";
     clearInterval(intervaloPacman);
     clearInterval(intervaloFantasmas);
@@ -128,7 +215,6 @@ function carregarFase() {
         cell.classList.add("wall");
       } else if (linha[col] === ".") {
         cell.classList.add("dot");
-        pontos++; // Incrementa a contagem de pontos
       }
 
       game.appendChild(cell);
@@ -174,9 +260,11 @@ function moverPacman() {
 
   if (mapaAtual[pacmanPos].classList.contains("dot")) {
     mapaAtual[pacmanPos].classList.remove("dot");
-    pontos++; // Incrementa a pontuação ao coletar um ponto
     scoreEl.textContent = "Pontos: " + (parseInt(scoreEl.textContent.split(" ")[1]) + 1);
-    if (pontos === 0) {
+    
+    // Verifica se coletou todos os pontos
+    const dotsLeft = document.querySelectorAll('.dot').length;
+    if (dotsLeft === 0) {
       fase++;
       setTimeout(carregarFase, 1000);
     }
@@ -224,4 +312,4 @@ function verificarColisao() {
   }
 }
 
-iniciarJogo();
+iniciarJogo(); 
