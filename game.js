@@ -92,8 +92,6 @@ let pontos = 0;
 let fase = 0;
 let intervaloPacman;
 let intervaloFantasmas;
-
-// Variáveis para controle do joystick
 let serialPort;
 let reader;
 let isJoystickConnected = false;
@@ -106,87 +104,102 @@ function iniciarJogo() {
   intervaloFantasmas = setInterval(moverFantasmas, 400);
   document.addEventListener("keydown", mudarDirecao);
   
-  // Adiciona botão de conexão do joystick
-  adicionarBotaoJoystick();
+  addArduinoButton();
 }
 
-function adicionarBotaoJoystick() {
-  if (!('serial' in navigator)) return;
+function addArduinoButton() {
+  if (!('serial' in navigator)) {
+    console.log('Web Serial API não suportada neste navegador');
+    return;
+  }
   
   const btn = document.createElement('button');
-  btn.textContent = 'Conectar Joystick';
+  btn.textContent = 'Conectar Arduino';
   btn.style.position = 'absolute';
   btn.style.top = '10px';
-  btn.style.left = '10px';
+  btn.style.left = '150px';
   btn.style.padding = '5px 10px';
   btn.style.zIndex = '1000';
   document.body.appendChild(btn);
   
   btn.addEventListener('click', async () => {
     if (!isJoystickConnected) {
-      await conectarJoystick();
-      btn.textContent = 'Desconectar Joystick';
+      await connectArduinoController();
+      btn.textContent = 'Desconectar Arduino';
     } else {
-      await desconectarJoystick();
-      btn.textContent = 'Conectar Joystick';
+      await disconnectArduino();
+      btn.textContent = 'Conectar Arduino';
     }
   });
 }
 
-async function conectarJoystick() {
+async function connectArduinoController() {
   try {
     serialPort = await navigator.serial.requestPort();
     await serialPort.open({ baudRate: 9600 });
     reader = serialPort.readable.getReader();
     isJoystickConnected = true;
-    statusEl.textContent = 'Joystick conectado!';
+    statusEl.textContent = 'Controle Arduino conectado!';
     
-    // Loop de leitura dos dados
-    while (isJoystickConnected) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      
-      const data = new TextDecoder().decode(value).trim();
-      processarDadosJoystick(data);
+    while (isJoystickConnected && serialPort.readable) {
+      try {
+        const { value, done } = await reader.read();
+        if (done) break;
+        
+        const data = new TextDecoder().decode(value).trim();
+        handleArduinoCommand(data);
+      } catch (readError) {
+        console.error('Erro na leitura:', readError);
+        break;
+      }
     }
   } catch (error) {
-    console.error('Erro:', error);
-    statusEl.textContent = 'Erro ao conectar joystick';
+    console.error('Erro na conexão:', error);
+    statusEl.textContent = 'Erro ao conectar Arduino';
     isJoystickConnected = false;
   }
 }
 
-function processarDadosJoystick(data) {
-  const parts = data.split(',');
-  if (parts.length < 4) return;
-  
-  const dirPart = parts.find(part => part.startsWith('DIR:'));
-  if (!dirPart) return;
-  
-  const direction = dirPart.split(':')[1];
-  
-  // Mapeia as direções do joystick
-  if (direction.includes('U')) direcao = -18;    // Cima
-  else if (direction.includes('D')) direcao = 18; // Baixo
-  else if (direction.includes('L')) direcao = -1; // Esquerda
-  else if (direction.includes('R')) direcao = 1;  // Direita
-  
-  // Verifica botão pressionado (para reiniciar)
-  const btnPart = parts.find(part => part.startsWith('BTN:'));
-  if (btnPart && btnPart.split(':')[1] === '1') {
-    if (statusEl.textContent.includes("Game Over") || statusEl.textContent.includes("Você venceu")) {
-      iniciarJogo();
+function handleArduinoCommand(command) {
+  if (command.startsWith('DIR:')) {
+    const direction = command.split(':')[1];
+    if (direction.includes('U')) direcao = -18;
+    else if (direction.includes('D')) direcao = 18;
+    else if (direction.includes('L')) direcao = -1;
+    else if (direction.includes('R')) direcao = 1;
+  } else {
+    switch(command) {
+      case 'UP': direcao = -18; break;
+      case 'DOWN': direcao = 18; break;
+      case 'LEFT': direcao = -1; break;
+      case 'RIGHT': direcao = 1; break;
+      case 'ACTION':
+        if (statusEl.textContent.includes("Game Over") || statusEl.textContent.includes("Você venceu")) {
+          iniciarJogo();
+        }
+        break;
     }
   }
 }
 
-async function desconectarJoystick() {
-  if (reader) {
-    await reader.cancel();
-    await serialPort.close();
-  }
+async function disconnectArduino() {
   isJoystickConnected = false;
-  statusEl.textContent = '';
+  if (reader) {
+    try {
+      await reader.cancel();
+      await reader.releaseLock();
+    } catch (e) {
+      console.error('Erro ao liberar reader:', e);
+    }
+  }
+  if (serialPort) {
+    try {
+      await serialPort.close();
+    } catch (e) {
+      console.error('Erro ao fechar porta:', e);
+    }
+  }
+  statusEl.textContent = 'Controle desconectado';
 }
 
 function carregarFase() {
@@ -203,7 +216,7 @@ function carregarFase() {
   game.innerHTML = "";
   fantasmas = [];
   direcao = null;
-  pacmanPos = 19; // posição inicial no canto
+  pacmanPos = 19;
 
   config.mapa.forEach((linha, rowIndex) => {
     for (let col = 0; col < linha.length; col++) {
@@ -246,7 +259,6 @@ function moverPacman() {
 
   let destino = pacmanPos + direcao;
 
-  // Atalho lateral
   if (pacmanPos % 18 === 0 && direcao === -1) destino = pacmanPos + 17;
   if (pacmanPos % 18 === 17 && direcao === 1) destino = pacmanPos - 17;
 
@@ -260,9 +272,9 @@ function moverPacman() {
 
   if (mapaAtual[pacmanPos].classList.contains("dot")) {
     mapaAtual[pacmanPos].classList.remove("dot");
-    scoreEl.textContent = "Pontos: " + (parseInt(scoreEl.textContent.split(" ")[1]) + 1);
+    pontos++;
+    scoreEl.textContent = "Pontos: " + pontos;
     
-    // Verifica se coletou todos os pontos
     const dotsLeft = document.querySelectorAll('.dot').length;
     if (dotsLeft === 0) {
       fase++;
@@ -312,112 +324,4 @@ function verificarColisao() {
   }
 }
 
-
-iniciarJogo(); 
-
-// ===== INTEGRAÇÃO DO CONTROLE ARDUINO =====
-let serialPort = null;
-let reader = null;
-let isJoystickConnected = false;
-
-// Função para conectar o controle Arduino
-async function connectArduinoController() {
-  try {
-    // Solicita ao usuário para selecionar a porta serial
-    serialPort = await navigator.serial.requestPort();
-    await serialPort.open({ baudRate: 9600 });
-    
-    // Atualiza status
-    isJoystickConnected = true;
-    statusEl.textContent = 'Controle Arduino conectado!';
-    statusEl.style.display = 'block';
-    setTimeout(() => statusEl.style.display = 'none', 2000);
-    
-    // Inicia leitura contínua
-    reader = serialPort.readable.getReader();
-    readFromArduino();
-    
-  } catch (error) {
-    console.error('Erro ao conectar Arduino:', error);
-    statusEl.textContent = 'Erro ao conectar Arduino';
-    statusEl.style.display = 'block';
-  }
-}
-
-// Função para ler dados do Arduino continuamente
-async function readFromArduino() {
-  try {
-    while (isJoystickConnected) {
-      const { value, done } = await reader.read();
-      if (done) {
-        reader.releaseLock();
-        break;
-      }
-      
-      const command = new TextDecoder().decode(value).trim();
-      handleArduinoCommand(command);
-    }
-  } catch (error) {
-    console.error('Erro na leitura:', error);
-    if (reader) reader.releaseLock();
-  }
-}
-
-// Função para processar comandos do Arduino
-function handleArduinoCommand(command) {
-  switch(command) {
-    case 'UP':
-      direcao = -18;
-      break;
-    case 'DOWN':
-      direcao = 18;
-      break;
-    case 'LEFT':
-      direcao = -1;
-      break;
-    case 'RIGHT':
-      direcao = 1;
-      break;
-    case 'ACTION':
-      // Implemente ação adicional se necessário
-      break;
-  }
-}
-
-// Função para desconectar o controle
-async function disconnectArduino() {
-  if (reader) {
-    await reader.cancel();
-    await reader.releaseLock();
-  }
-  if (serialPort) {
-    await serialPort.close();
-  }
-  isJoystickConnected = false;
-  statusEl.textContent = 'Controle desconectado';
-  statusEl.style.display = 'block';
-  setTimeout(() => statusEl.style.display = 'none', 2000);
-}
-
-// Adiciona botão de controle ao header
-function addArduinoButton() {
-  if (!('serial' in navigator)) return; // Verifica suporte a Serial API
-  
-  const btn = document.createElement('button');
-  btn.textContent = 'Conectar Arduino';
-  btn.style.marginLeft = '10px';
-  btn.addEventListener('click', async () => {
-    if (!isJoystickConnected) {
-      await connectArduinoController();
-      btn.textContent = 'Desconectar Arduino';
-    } else {
-      await disconnectArduino();
-      btn.textContent = 'Conectar Arduino';
-    }
-  });
-  
-  document.getElementById('header').appendChild(btn);
-}
-
-// Inicializa o botão quando o jogo carrega
-addArduinoButton();
+iniciarJogo();
