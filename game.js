@@ -312,4 +312,112 @@ function verificarColisao() {
   }
 }
 
+
 iniciarJogo(); 
+
+// ===== INTEGRAÇÃO DO CONTROLE ARDUINO =====
+let serialPort = null;
+let reader = null;
+let isJoystickConnected = false;
+
+// Função para conectar o controle Arduino
+async function connectArduinoController() {
+  try {
+    // Solicita ao usuário para selecionar a porta serial
+    serialPort = await navigator.serial.requestPort();
+    await serialPort.open({ baudRate: 9600 });
+    
+    // Atualiza status
+    isJoystickConnected = true;
+    statusEl.textContent = 'Controle Arduino conectado!';
+    statusEl.style.display = 'block';
+    setTimeout(() => statusEl.style.display = 'none', 2000);
+    
+    // Inicia leitura contínua
+    reader = serialPort.readable.getReader();
+    readFromArduino();
+    
+  } catch (error) {
+    console.error('Erro ao conectar Arduino:', error);
+    statusEl.textContent = 'Erro ao conectar Arduino';
+    statusEl.style.display = 'block';
+  }
+}
+
+// Função para ler dados do Arduino continuamente
+async function readFromArduino() {
+  try {
+    while (isJoystickConnected) {
+      const { value, done } = await reader.read();
+      if (done) {
+        reader.releaseLock();
+        break;
+      }
+      
+      const command = new TextDecoder().decode(value).trim();
+      handleArduinoCommand(command);
+    }
+  } catch (error) {
+    console.error('Erro na leitura:', error);
+    if (reader) reader.releaseLock();
+  }
+}
+
+// Função para processar comandos do Arduino
+function handleArduinoCommand(command) {
+  switch(command) {
+    case 'UP':
+      direcao = -18;
+      break;
+    case 'DOWN':
+      direcao = 18;
+      break;
+    case 'LEFT':
+      direcao = -1;
+      break;
+    case 'RIGHT':
+      direcao = 1;
+      break;
+    case 'ACTION':
+      // Implemente ação adicional se necessário
+      break;
+  }
+}
+
+// Função para desconectar o controle
+async function disconnectArduino() {
+  if (reader) {
+    await reader.cancel();
+    await reader.releaseLock();
+  }
+  if (serialPort) {
+    await serialPort.close();
+  }
+  isJoystickConnected = false;
+  statusEl.textContent = 'Controle desconectado';
+  statusEl.style.display = 'block';
+  setTimeout(() => statusEl.style.display = 'none', 2000);
+}
+
+// Adiciona botão de controle ao header
+function addArduinoButton() {
+  if (!('serial' in navigator)) return; // Verifica suporte a Serial API
+  
+  const btn = document.createElement('button');
+  btn.textContent = 'Conectar Arduino';
+  btn.style.marginLeft = '10px';
+  btn.addEventListener('click', async () => {
+    if (!isJoystickConnected) {
+      await connectArduinoController();
+      btn.textContent = 'Desconectar Arduino';
+    } else {
+      await disconnectArduino();
+      btn.textContent = 'Conectar Arduino';
+    }
+  });
+  
+  document.getElementById('header').appendChild(btn);
+}
+
+// Inicializa o botão quando o jogo carrega
+addArduinoButton();
