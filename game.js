@@ -104,31 +104,57 @@ function iniciarJogo() {
   intervaloFantasmas = setInterval(moverFantasmas, 400);
   document.addEventListener("keydown", mudarDirecao);
   
-  addArduinoButton();
+  criarBotaoControle();
 }
 
-function addArduinoButton() {
+function criarBotaoControle() {
   if (!('serial' in navigator)) {
-    console.log('Web Serial API não suportada neste navegador');
+    statusEl.textContent = "⚠️ Navegador não suporta controle via Arduino";
     return;
   }
-  
+
   const btn = document.createElement('button');
-  btn.textContent = 'Conectar Arduino';
-  btn.style.position = 'absolute';
-  btn.style.top = '10px';
-  btn.style.left = '150px';
-  btn.style.padding = '5px 10px';
+  btn.id = "arduino-btn";
+  btn.textContent = '🎮 Conectar Controle';
+  btn.style.position = 'fixed';
+  btn.style.top = '20px';
+  btn.style.right = '20px';
+  btn.style.padding = '10px 15px';
+  btn.style.borderRadius = '5px';
+  btn.style.border = 'none';
+  btn.style.background = '#4CAF50';
+  btn.style.color = 'white';
+  btn.style.fontWeight = 'bold';
+  btn.style.cursor = 'pointer';
   btn.style.zIndex = '1000';
+  btn.style.transition = 'all 0.3s';
+  
+  btn.addEventListener('mouseover', () => {
+    btn.style.background = '#45a049';
+  });
+  
+  btn.addEventListener('mouseout', () => {
+    btn.style.background = '#4CAF50';
+  });
+
   document.body.appendChild(btn);
   
   btn.addEventListener('click', async () => {
     if (!isJoystickConnected) {
+      btn.textContent = '🔄 Conectando...';
+      btn.style.background = '#FF9800';
       await connectArduinoController();
-      btn.textContent = 'Desconectar Arduino';
+      if (isJoystickConnected) {
+        btn.textContent = '✅ Controle Conectado';
+        btn.style.background = '#2196F3';
+      } else {
+        btn.textContent = '🎮 Tentar Novamente';
+        btn.style.background = '#FF5722';
+      }
     } else {
       await disconnectArduino();
-      btn.textContent = 'Conectar Arduino';
+      btn.textContent = '🎮 Conectar Controle';
+      btn.style.background = '#4CAF50';
     }
   });
 }
@@ -139,7 +165,7 @@ async function connectArduinoController() {
     await serialPort.open({ baudRate: 9600 });
     reader = serialPort.readable.getReader();
     isJoystickConnected = true;
-    statusEl.textContent = 'Controle Arduino conectado!';
+    statusEl.textContent = 'Controle conectado! Use o joystick.';
     
     while (isJoystickConnected && serialPort.readable) {
       try {
@@ -155,7 +181,7 @@ async function connectArduinoController() {
     }
   } catch (error) {
     console.error('Erro na conexão:', error);
-    statusEl.textContent = 'Erro ao conectar Arduino';
+    statusEl.textContent = 'Falha na conexão. Clique para tentar novamente.';
     isJoystickConnected = false;
   }
 }
@@ -199,8 +225,10 @@ async function disconnectArduino() {
       console.error('Erro ao fechar porta:', e);
     }
   }
-  statusEl.textContent = 'Controle desconectado';
+  statusEl.textContent = 'Controle desconectado.';
 }
+
+// ... (FUNÇÕES DO JOGO - MANTIDAS ORIGINAIS) ...
 
 function carregarFase() {
   if (fase >= fases.length) {
